@@ -1,0 +1,129 @@
+========================================================================================================================================================
+CREATING emp_details_partitioned TABLE:
+--------------------------------------
+
+create table emp_details_partitioned
+(
+emp_name string,
+unit string,
+exp int
+)
+partitioned by (location string);
+
+LOADING emp_details_partitioned TABLE with Static Partitions:
+------------------------------------------------------------
+
+insert overwrite table emp_details_partitioned
+partition(location = 'hyd')
+select emp_name, unit, exp from emp_details1
+where location = 'hyd';  
+
+select * from emp_details_partitioned;
++-----------------------------------+-------------------------------+------------------------------+-----------------------------------+
+| emp_details_partitioned.emp_name  | emp_details_partitioned.unit  | emp_details_partitioned.exp  | emp_details_partitioned.location  |
++-----------------------------------+-------------------------------+------------------------------+-----------------------------------+
+| raghu                             | dev                           | 4                            | hyd                               |
++-----------------------------------+-------------------------------+------------------------------+-----------------------------------+
+
+hdfs dfs -ls /warehouse/tablespace/managed/hive/emp_details_partitioned
+
+drwxr-xr-x+  - hive hadoop          0 2022-03-25 03:23 /warehouse/tablespace/managed/hive/emp_details_partitioned/location=hyd
+
+=============================================================================================================================================================
+LOADING emp_details_partitioned TABLE with Dynamic Partitions:
+-------------------------------------------------------------
+
+set hive.exec.dynamic.partition.mode=nonstrict;
+
+insert overwrite table emp_details_partitioned
+partition (location)
+select * from emp_details1;
+
+hdfs dfs -ls /warehouse/tablespace/managed/hive/emp_details_partitioned 
+drwxrwxrwx+  - hive hadoop          0 2022-03-25 03:34 /warehouse/tablespace/managed/hive/emp_details_partitioned/location=blr
+drwxrwxrwx+  - hive hadoop          0 2022-03-25 03:34 /warehouse/tablespace/managed/hive/emp_details_partitioned/location=chennai
+drwxrwxrwx+  - hive hadoop          0 2022-03-25 03:34 /warehouse/tablespace/managed/hive/emp_details_partitioned/location=dhl
+drwxr-xr-x+  - hive hadoop          0 2022-03-25 03:34 /warehouse/tablespace/managed/hive/emp_details_partitioned/location=hyd
+drwxrwxrwx+  - hive hadoop          0 2022-03-25 03:34 /warehouse/tablespace/managed/hive/emp_details_partitioned/location=mumbai
+
+
+select count(*) from emp_details_partitioned where location='blr';
++------+
+| _c0  |
++------+
+| 2    |
++------+
+
+
+Takes long time
+---------------
+select count(*) from emp_details_partitioned where exp>='4';  
++------+
+| _c0  |
++------+
+| 10   |
++------+
+
+select count(*) from emp_details_partitioned where emp_name='divya';  
++------+
+| _c0  |
++------+
+| 2    |
++------+
+
+=============================================================================================================================================================
+DROPING PARTITIONS FROM emp_details_partitioned TABLE:
+------------------------------------------------------
+
+alter table emp_details_partitioned drop partition(location='blr');
+
++-----------------------------------+-------------------------------+------------------------------+-----------------------------------+
+| emp_details_partitioned.emp_name  | emp_details_partitioned.unit  | emp_details_partitioned.exp  | emp_details_partitioned.location  |
++-----------------------------------+-------------------------------+------------------------------+-----------------------------------+
+| ravi                              | sysops                        | 7                            | chennai                           |
+| ravi                              | sysops                        | 7                            | chennai                           |
+| divya                             | devops                        | 6                            | dhl                               |
+| divya                             | devops                        | 6                            | dhl                               |
+| raghu                             | dev                           | 4                            | hyd                               |
+| raghu                             | dev                           | 4                            | hyd                               |
+| kumar                             | hr                            | 8                            | mumbai                            |
+| kumar                             | hr                            | 8                            | mumbai                            |
++-----------------------------------+-------------------------------+------------------------------+-----------------------------------+
+
+hdfs dfs -ls /warehouse/tablespace/managed/hive/emp_details_partitioned 
+
+drwxrwxrwx+  - hive hadoop          0 2022-03-25 03:41 /warehouse/tablespace/managed/hive/emp_details_partitioned/location=chennai
+drwxrwxrwx+  - hive hadoop          0 2022-03-25 03:44 /warehouse/tablespace/managed/hive/emp_details_partitioned/location=dhl
+drwxr-xr-x+  - hive hadoop          0 2022-03-25 03:46 /warehouse/tablespace/managed/hive/emp_details_partitioned/location=hyd
+drwxrwxrwx+  - hive hadoop          0 2022-03-25 03:44 /warehouse/tablespace/managed/hive/emp_details_partitioned/location=mumbai
+
+=============================================================================================================================================================
+SELECT * from users TABLESAMPLE(BUCKET 3 OUT OF 10 ON rand()) s;
+
++-------+---------+-----------+---------+
+| s.id  | s.name  | s.salary  | s.unit  |
++-------+---------+-----------+---------+
+| 5     | Watson  | 10500     | FCS     |
++-------+---------+-----------+---------+
+
+
+SELECT * from users TABLESAMPLE(BUCKET 2 OUT OF 4 ON name) s;
+
++-------+---------+-----------+---------+
+| s.id  | s.name  | s.salary  | s.unit  |
++-------+---------+-----------+---------+
+| 1     | Amar    | 10000     | DNA     |
+| 5     | Watson  | 10500     | FCS     |
++-------+---------+-----------+---------+
+
+
+SELECT * FROM buck_users TABLESAMPLE(BUCKET 1 OUT OF 2 ON id) s LIMIT 1;
+
++-------+---------+-----------+---------+
+| s.id  | s.name  | s.salary  | s.unit  |
++-------+---------+-----------+---------+
+| 2     | Akbar   | 20000     | DNA     |
++-------+---------+-----------+---------+
+
+=============================================================================================================================================================
+----------------------------------------------------------------------end-of-file-----------------------------------------------------------------------

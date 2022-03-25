@@ -1,0 +1,57 @@
+======================================================================================================================================================
+Sample File (regex_file.txt)
+-----------------------------
+
+host1/aakash@gmail
+host2/prasad@facebook
+host3/rahul@gmail
+host4/anand@gmail
+=====================================================================================================================================================
+CREATE TABLE WITH RegexSerDe
+-----------------------------
+CREATE TABLE userlog(
+ host string,
+ user_name string,
+ domain string
+ )
+ ROW FORMAT SERDE
+ 'org.apache.hadoop.hive.contrib.serde2.RegexSerDe'
+ WITH SERDEPROPERTIES(
+ 'input.regex' = '(.*)/(.*)@(.*)',
+ 'output.format.string' = '%1$s %2$s %3$s')
+stored as textfile;
+
+-----------------------------
+LOAD DATA
+-----------------------------
+
+LOAD DATA LOCAL INPATH '/root/regex_file.txt'
+INTO TABLE userlog;
+
+-----------------------------
+FETCH DATA
+-----------------------------
+
+SELECT * FROM userlog;
++---------------+--------------------+-----------------+
+| userlog.host  | userlog.user_name  | userlog.domain  |
++---------------+--------------------+-----------------+
+| host1         | aakash             | gmail           |
+| host2         | prasad             | facebook        |
+| host3         | rahul              | gmail           |
+| host4         | anand              | gmail           |
++---------------+--------------------+-----------------+
+
+
+SELECT host, user_name FROM userlog;
++--------+------------+
+|  host  | user_name  |
++--------+------------+
+| host1  | aakash     |
+| host2  | prasad     |
+| host3  | rahul      |
+| host4  | anand      |
++--------+------------+
+=============================================================================================================================================================
+--------------------------------------------------------------------------------end-of-file--------------------------------------------------------------
+

@@ -1,0 +1,38 @@
+vi csv_file.csv
+name,location
+shyam, "BBSR,India"
+Suman, "MUM,India"
+
+CREATE TABLE csv_table(name string, location string)
+ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
+WITH SERDEPROPERTIES (
+    "separatorChar" = ",",
+    "quoteChar"     = "\"",
+    "escapeChar"    = "\\"
+)
+STORED AS TEXTFILE
+TBLPROPERTIES ("skip.header.line.count"="1")
+;
+
+LOAD DATA LOCAL INPATH '/root/csv-file.csv'
+OVERWRITE INTO TABLE csv_table;
+
+select * from csv_table;
+
++-----------------+---------------------+
+| csv_table.name  | csv_table.location  |
++-----------------+---------------------+
+| shyam           | BBSR,India          |
+| Suman           | MUM,India           |
+| NULL            | NULL                |
++-----------------+---------------------+
+
+select location from csv_table;
+
++-------------+
+|  location   |
++-------------+
+| BBSR,India  |
+| MUM,India   |
+| NULL        |
++-------------+

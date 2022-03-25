@@ -1,0 +1,204 @@
+Bucketing Assesment:
+
+USE default;
+
+CREATE TABLE locations
+(
+id INT,
+location STRING
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY '\t'
+stored as textfile;
+
+LOAD DATA LOCAL INPATH '/root/locations.txt'
+overwrite INTO TABLE locations;
+
+location table :
++---------------+---------------------+
+| locations.id  | locations.location  |
++---------------+---------------------+
+| 1             | USA                 |
+| 2             | UK                  |
+| 3             | MALAYSIA            |
+| 4             | THAILAND            |
+| 5             | HONH KONG           |
+| 6             | AFRICA              |
+| 7             | INDIA               |
+| NULL          | NULL                |
+| NULL          | NULL                |
++---------------+---------------------+
+
+CREATE TABLE users
+(
+id INT,
+name STRING,
+salary INT,
+unit STRING
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY '\t'
+stored as textfile;
+
+LOAD DATA LOCAL INPATH '/root/users.txt'
+overwrite INTO TABLE users;
+
+users table :
++-----------+-------------+---------------+-------------+
+| users.id  | users.name  | users.salary  | users.unit  |
++-----------+-------------+---------------+-------------+
+| 1         | Amar        | 10000         | DNA         |
+| 2         | Akbar       | 20000         | DNA         |
+| 3         | Antony      | 30500         | DNA         |
+| 4         | Kevin       | 50000         | FCS         |
+| 5         | Watson      | 10500         | FCS         |
+| 6         | Micheal     | 20200         | FCS         |
+| 8         | Tuhin       | 50050         | DNA         |
++-----------+-------------+---------------+-------------+
+
+
+CREATE TABLE buck_users
+(
+id INT,
+name STRING,
+salary INT,
+unit STRING
+)
+CLUSTERED BY (id)
+INTO 4  BUCKETS
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY '\t';
+
+SET hive.enforce.bucketing=true;
+
+INSERT OVERWRITE TABLE buck_users
+SELECT * FROM users;
+
++----------------+------------------+--------------------+------------------+
+| buck_users.id  | buck_users.name  | buck_users.salary  | buck_users.unit  |
++----------------+------------------+--------------------+------------------+
+| 2              | Akbar            | 20000              | DNA              |
+| 6              | Micheal          | 20200              | FCS              |
+| 1              | Amar             | 10000              | DNA              |
+| 4              | Kevin            | 50000              | FCS              |
+| 8              | Tuhin            | 50050              | DNA              |
+| 3              | Antony           | 30500              | DNA              |
+| 5              | Watson           | 10500              | FCS              |
++----------------+------------------+--------------------+------------------+
+
+hdfs dfs -ls ltr /warehouse/tablespace/managed/hive/buck_users/base_0000001
+
+-rw-rw-rw-+  1 hive hadoop        530 2022-03-24 08:31 /warehouse/tablespace/managed/hive/buck_users/base_0000001/000000_0
+-rw-rw-rw-+  1 hive hadoop        539 2022-03-24 08:33 /warehouse/tablespace/managed/hive/buck_users/base_0000001/000001_0
+-rw-rw-rw-+  1 hive hadoop        483 2022-03-24 08:31 /warehouse/tablespace/managed/hive/buck_users/base_0000001/000002_0
+-rw-rw-rw-+  1 hive hadoop        487 2022-03-24 08:31 /warehouse/tablespace/managed/hive/buck_users/base_0000001/000003_0
+
+
+CREATE TABLE buck_loc
+(
+id INT,
+location STRING
+)
+CLUSTERED BY (id)
+INTO 4 BUCKETS
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY '\t';
+
+
+INSERT OVERWRITE TABLE buck_loc
+SELECT * FROM locations;
+
++--------------+--------------------+
+| buck_loc.id  | buck_loc.location  |
++--------------+--------------------+
+| NULL         | NULL               |
+| NULL         | NULL               |
+| 7            | INDIA              |
+| 6            | AFRICA             |
+| 2            | UK                 |
+| 4            | THAILAND           |
+| 1            | USA                |
+| 3            | MALAYSIA           |
+| 5            | HONH KONG          |
++--------------+--------------------+
+
+ hdfs dfs -ls ltr /warehouse/tablespace/managed/hive/buck_loc/base_0000001
+
+-rw-rw-rw-+  1 hive hadoop          1 2022-03-24 08:35 /warehouse/tablespace/managed/hive/buck_loc/base_0000001/_orc_acid_version
+-rw-rw-rw-+  1 hive hadoop        781 2022-03-24 08:35 /warehouse/tablespace/managed/hive/buck_loc/base_0000001/bucket_00000
+-rw-rw-rw-+  1 hive hadoop        768 2022-03-24 08:35 /warehouse/tablespace/managed/hive/buck_loc/base_0000001/bucket_00001
+-rw-rw-rw-+  1 hive hadoop        738 2022-03-24 08:35 /warehouse/tablespace/managed/hive/buck_loc/base_0000001/bucket_00002
+-rw-rw-rw-+  1 hive hadoop        740 2022-03-24 08:35 /warehouse/tablespace/managed/hive/buck_loc/base_0000001/bucket_00003
+
+hive --orcfiledump /warehouse/tablespace/managed/hive/buck_loc/base_0000001/bucket_00000
+
+Structure for /warehouse/tablespace/managed/hive/buck_loc/base_0000001/bucket_00000
+File Version: 0.12 with ORC_135
+Rows: 5
+Compression: ZLIB
+Compression size: 262144
+Type: struct<operation:int,originalTransaction:bigint,bucket:int,rowId:bigint,currentTransaction:bigint,row:struct<id:int,location:string>>
+
+Stripe Statistics:
+  Stripe 1:
+    Column 0: count: 5 hasNull: false
+    Column 1: count: 5 hasNull: false bytesOnDisk: 5 min: 0 max: 0 sum: 0
+    Column 2: count: 5 hasNull: false bytesOnDisk: 5 min: 1 max: 1 sum: 5
+    Column 3: count: 5 hasNull: false bytesOnDisk: 8 min: 536870912 max: 536870912 sum: 2684354560
+    Column 4: count: 5 hasNull: false bytesOnDisk: 7 min: 0 max: 4 sum: 10
+    Column 5: count: 5 hasNull: false bytesOnDisk: 5 min: 1 max: 1 sum: 5
+    Column 6: count: 5 hasNull: false
+    Column 7: count: 3 hasNull: true bytesOnDisk: 12 min: 2 max: 7 sum: 15
+    Column 8: count: 3 hasNull: true bytesOnDisk: 28 min: AFRICA max: UK sum: 13
+
+File Statistics:
+  Column 0: count: 5 hasNull: false
+  Column 1: count: 5 hasNull: false bytesOnDisk: 5 min: 0 max: 0 sum: 0
+  Column 2: count: 5 hasNull: false bytesOnDisk: 5 min: 1 max: 1 sum: 5
+  Column 3: count: 5 hasNull: false bytesOnDisk: 8 min: 536870912 max: 536870912 sum: 2684354560
+  Column 4: count: 5 hasNull: false bytesOnDisk: 7 min: 0 max: 4 sum: 10
+  Column 5: count: 5 hasNull: false bytesOnDisk: 5 min: 1 max: 1 sum: 5
+  Column 6: count: 5 hasNull: false
+  Column 7: count: 3 hasNull: true bytesOnDisk: 12 min: 2 max: 7 sum: 15
+  Column 8: count: 3 hasNull: true bytesOnDisk: 28 min: AFRICA max: UK sum: 13
+
+Stripes:
+  Stripe: offset: 3 data: 70 rows: 5 tail: 84 index: 206
+    Stream: column 0 section ROW_INDEX start: 3 length 11
+    Stream: column 1 section ROW_INDEX start: 14 length 24
+    Stream: column 2 section ROW_INDEX start: 38 length 24
+    Stream: column 3 section ROW_INDEX start: 62 length 30
+    Stream: column 4 section ROW_INDEX start: 92 length 24
+    Stream: column 5 section ROW_INDEX start: 116 length 24
+    Stream: column 6 section ROW_INDEX start: 140 length 11
+    Stream: column 7 section ROW_INDEX start: 151 length 25
+    Stream: column 8 section ROW_INDEX start: 176 length 33
+    Stream: column 1 section DATA start: 209 length 5
+    Stream: column 2 section DATA start: 214 length 5
+    Stream: column 3 section DATA start: 219 length 8
+    Stream: column 4 section DATA start: 227 length 7
+    Stream: column 5 section DATA start: 234 length 5
+    Stream: column 7 section PRESENT start: 239 length 5
+    Stream: column 7 section DATA start: 244 length 7
+    Stream: column 8 section PRESENT start: 251 length 5
+    Stream: column 8 section DATA start: 256 length 16
+    Stream: column 8 section LENGTH start: 272 length 7
+    Encoding column 0: DIRECT
+    Encoding column 1: DIRECT_V2
+    Encoding column 2: DIRECT_V2
+    Encoding column 3: DIRECT_V2
+    Encoding column 4: DIRECT_V2
+    Encoding column 5: DIRECT_V2
+    Encoding column 6: DIRECT
+    Encoding column 7: DIRECT_V2
+    Encoding column 8: DIRECT_V2
+
+File length: 781 bytes
+Padding length: 0 bytes
+Padding ratio: 0%
+
+User Metadata:
+  hive.acid.key.index=1,536870912,4;
+  hive.acid.stats=5,0,0
+  hive.acid.version=2
+________________________________________________________________________________________________________________________

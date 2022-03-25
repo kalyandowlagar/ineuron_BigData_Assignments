@@ -1,0 +1,125 @@
+==============================================================================================================================================================
+Input file:
+-----------
+
+vi employee.csv
+101,Amrutha,HADOOP:HIVE:SPARK:BIG-DATA
+102,Supriya,HIVE:OOZIE:HADOOP:SPARK:STORM
+103,Rohitha,KAFKA:CASSANDRA:HBASE
+104,Tarun,HADOOP:SPARK:BIG-DATA:CASSANDRA:HBASE
+105,varun,BIG-DATA:CASSANDRA:HBASE
+
+
+CREATE TABLE employee
+(
+id INT,
+name STRING,
+skills ARRAY<STRING>
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+COLLECTION ITEMS TERMINATED BY ':'
+Stored as textfile;
+
+LOAD DATA LOCAL INPATH '/root/employee.csv'
+INTO TABLE employee;
+
+select * from employee;
+
++--------------+----------------+----------------------------------------------------+
+| employee.id  | employee.name  |                  employee.skills                   |
++--------------+----------------+----------------------------------------------------+
+| 101          | Amrutha        | ["HADOOP","HIVE","SPARK","BIG-DATA"]               |
+| 102          | Supriya        | ["HIVE","OOZIE","HADOOP","SPARK","STORM"]          |
+| 103          | Rohitha        | ["KAFKA","CASSANDRA","HBASE"]                      |
+| 104          | Tarun          | ["HADOOP","SPARK","BIG-DATA","CASSANDRA","HBASE"]  |
+| 105          | varun          | ["BIG-DATA","CASSANDRA","HBASE"]                   |
++--------------+----------------+----------------------------------------------------+
+
+====================================================================================================================================================================
+Working with Array operators:
+----------------------------
+SELECT 
+size(skills),
+array_contains(skills, 'HADOOP'),
+sort_array(skills),
+concat_ws("|", skills)
+FROM employee;
+
++------+--------+----------------------------------------------------+----------------------------------------+
+| _c0  |  _c1   |                        _c2                         |                  _c3                   |
++------+--------+----------------------------------------------------+----------------------------------------+
+| 4    | true   | ["BIG-DATA","HADOOP","HIVE","SPARK"]               | HADOOP|HIVE|SPARK|BIG-DATA             |
+| 5    | true   | ["HADOOP","HIVE","OOZIE","SPARK","STORM"]          | HIVE|OOZIE|HADOOP|SPARK|STORM          |
+| 3    | false  | ["CASSANDRA","HBASE","KAFKA"]                      | KAFKA|CASSANDRA|HBASE                  |
+| 5    | true   | ["BIG-DATA","CASSANDRA","HADOOP","HBASE","SPARK"]  | HADOOP|SPARK|BIG-DATA|CASSANDRA|HBASE  |
+| 3    | false  | ["BIG-DATA","CASSANDRA","HBASE"]                   | BIG-DATA|CASSANDRA|HBASE               |
++------+--------+----------------------------------------------------+----------------------------------------+
+
+
+================================================================================================================================================================
+Exploding contents of an array:
+------------------------------
+
+SELECT explode(skills) AS skills FROM employee;
+
++------------+
+|   skills   |
++------------+
+| HADOOP     |
+| HIVE       |
+| SPARK      |
+| BIG-DATA   |
+| HIVE       |
+| OOZIE      |
+| HADOOP     |
+| SPARK      |
+| STORM      |
+| KAFKA      |
+| CASSANDRA  |
+| HBASE      |
+| HADOOP     |
+| SPARK      |
+| BIG-DATA   |
+| CASSANDRA  |
+| HBASE      |
+| BIG-DATA   |
+| CASSANDRA  |
+| HBASE      |
++------------+
+
+=======================================================================================================================================================
+Expanding contents of an array with other columns:
+--------------------------------------------------
+
+SELECT id, name, skill
+FROM employee LATERAL VIEW explode(skills) skill_set 
+AS skill;
+
++------+----------+------------+
+|  id  |   name   |   skill    |
++------+----------+------------+
+| 101  | Amrutha  | HADOOP     |
+| 101  | Amrutha  | HIVE       |
+| 101  | Amrutha  | SPARK      |
+| 101  | Amrutha  | BIG-DATA   |
+| 102  | Supriya  | HIVE       |
+| 102  | Supriya  | OOZIE      |
+| 102  | Supriya  | HADOOP     |
+| 102  | Supriya  | SPARK      |
+| 102  | Supriya  | STORM      |
+| 103  | Rohitha  | KAFKA      |
+| 103  | Rohitha  | CASSANDRA  |
+| 103  | Rohitha  | HBASE      |
+| 104  | Tarun    | HADOOP     |
+| 104  | Tarun    | SPARK      |
+| 104  | Tarun    | BIG-DATA   |
+| 104  | Tarun    | CASSANDRA  |
+| 104  | Tarun    | HBASE      |
+| 105  | varun    | BIG-DATA   |
+| 105  | varun    | CASSANDRA  |
+| 105  | varun    | HBASE      |
++------+----------+------------+
+
+===========================================================================================================================================================
+--------------------------------------------------------------------------End-of-file-------------------------------------------------------------

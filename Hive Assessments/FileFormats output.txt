@@ -1,0 +1,136 @@
+=============================================================================================================================================================
+vi numbers.txt
+1,25,500,1245
+2,50,800,1649
+3,75,900,4285
+4,10,600,5482
+5,20,400,4956
+
+
+Creating regular text table:
+---------------------------
+
+create table text_table
+(
+c1 int,
+c2 int,
+c3 int,
+c4 int
+)
+row format delimited
+fields terminated by '|'
+stored as textfile;
+
+Loading into text table
+---------------------------
+
+load data local inpath '/root/numbers.txt'
+into table text_table;
+
+Creating SequenceFile table
+---------------------------
+
+create table seq_table
+(
+c1 int,
+c2 int,
+c3 int,
+c4 int
+)
+stored as SEQUENCEFILE;
+
+Creating RC Format table
+---------------------------
+
+create table rc_table
+(
+c1 int,
+c2 int,
+c3 int,
+c4 int
+)
+stored as RCFILE;
+
+Creating Parquet File table
+---------------------------
+
+create table prq_table
+(
+c1 int,
+c2 int,
+c3 int,
+c4 int
+)
+stored as PARQUET;
+
+Creating ORC Format table
+---------------------------
+
+create table orc_table
+(
+c1 int,
+c2 int,
+c3 int,
+c4 int
+)
+stored as ORC;
+===========================================================================================================================================================
+Loading All the tables in a single pass
+----------------------------------------
+
+FROM text_table
+INSERT OVERWRITE TABLE seq_table SELECT *
+INSERT OVERWRITE TABLE rc_table SELECT *
+INSERT OVERWRITE TABLE prq_table SELECT *
+INSERT OVERWRITE TABLE orc_table SELECT *;
+
+Comparing sizes of loaded tables
+----------------------------------------
+hdfs dfs -ls /warehouse/tablespace/managed/hive/orc_table/base_0000001
+-rw-rw-rw-+  1 hive hadoop        753 2022-03-25 04:03 /warehouse/tablespace/managed/hive/orc_table/base_0000001/bucket_00000
+
+hdfs dfs -ls /warehouse/tablespace/managed/hive/prq_table/base_0000001
+-rw-rw-rw-+  1 hive hadoop        453 2022-03-25 04:03 /warehouse/tablespace/managed/hive/prq_table/base_0000001/000000_0
+
+hdfs dfs -ls /warehouse/tablespace/managed/hive/rc_table/base_0000001
+-rw-rw-rw-+  1 hive hadoop         89 2022-03-25 04:03 /warehouse/tablespace/managed/hive/rc_table/base_0000001/000000_0
+
+hdfs dfs -ls /warehouse/tablespace/managed/hive/seq_table/base_0000001
+-rw-rw-rw-+  1 hive hadoop        231 2022-03-25 04:03 /warehouse/tablespace/managed/hive/seq_table/base_0000001/000000_0
+
+===========================================================================================================================================================
+Enabling Compression:
+--------------------
+
+SET hive.exec.compress.output=true;
+SET mapred.max.split.size=256000000;
+SET mapred.output.compression.type=BLOCK; 
+SET mapred.output.compression.codec=org.apache.hadoop.io.compress.SnappyCodec;
+
+FROM text_table
+INSERT OVERWRITE TABLE seq_table SELECT *
+INSERT OVERWRITE TABLE rc_table SELECT *
+INSERT OVERWRITE TABLE prq_table SELECT *
+INSERT OVERWRITE TABLE orc_table SELECT *;
+
+drop TABLE seq_table;
+drop TABLE rc_table;
+drop TABLE prq_table;
+drop TABLE orc_table;
+
+recreate and reload data
+
+hdfs dfs -ls /warehouse/tablespace/managed/hive/orc_table/base_0000001
+-rw-rw-rw-+  1 hive hadoop        753 2022-03-25 04:25 /warehouse/tablespace/managed/hive/orc_table/base_0000001/bucket_00000
+
+hdfs dfs -ls /warehouse/tablespace/managed/hive/prq_table/base_0000001
+-rw-rw-rw-+  1 hive hadoop        453 2022-03-25 04:25 /warehouse/tablespace/managed/hive/prq_table/base_0000001/000000_0
+
+hdfs dfs -ls /warehouse/tablespace/managed/hive/rc_table/base_0000001
+-rw-rw-rw-+  1 hive hadoop         89 2022-03-25 04:25 /warehouse/tablespace/managed/hive/rc_table/base_0000001/000000_0
+
+hdfs dfs -ls /warehouse/tablespace/managed/hive/seq_table/base_0000001
+-rw-rw-rw-+  1 hive hadoop        231 2022-03-25 04:25 /warehouse/tablespace/managed/hive/seq_table/base_0000001/000000_0
+
+===========================================================================================================================================================
+-----------------------------------------------------------------------------end-of-file-------------------------------------------------------------------

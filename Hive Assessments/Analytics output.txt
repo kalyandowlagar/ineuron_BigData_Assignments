@@ -1,0 +1,294 @@
+vi users.txt
+
+1       Amit    1000    DNA
+2       Sumit   2009    DNA
+3       Yadav   3007    DNA
+4       Sunil   5006    FCS
+5       Kranti  1004    FCS
+6       Mahoor  2002    FCS
+7       Amrutha 1010    DNA
+8       Suhas   2020    DNA
+9       Yamuna  3030    DNA
+10      Sunny   5050    FCS
+11      Kiran   1400    FCS
+12      Mehar   2900    FCS
+13      Amulya  1700    DNA
+14      Suman   2500    DNA
+15      Yami    3000    DNA
+16      Sachin  5000    FCS
+17      Kalyan  1000    FCS
+18      Meghna  900     FCS
+
+vi locations.txt
+
+1       UP
+2       BIHAR
+3       MP
+4       AP
+5       MAHARASHTRA
+6       GOA
+7       Jammu
+8       Telangana
+9       Tamil nadu
+10      West bengal
+11      Himachal pradesh
+12      karnatak
+13      Chandighar
+14      kerala
+15      Orissa
+16      Pondichery
+17      Yanam
+18      Rajesthan
+
+
+SELECT unit, MAX(salary) FROM users
+GROUP BY unit;
+
++-------+-------+
+| unit  |  _c1  |
++-------+-------+
+| DNA   | 3030  |
+| FCS   | 5050  |
++-------+-------+
+
+
+SELECT id, name, salary, rank() OVER (PARTITION BY unit ORDER BY salary DESC) AS rank
+FROM users 
+
++-----+----------+---------+-------+
+| id  |   name   | salary  | rank  |
++-----+----------+---------+-------+
+| 9   | Yamuna   | 3030    | 1     |
+| 3   | Yadav    | 3007    | 2     |
+| 15  | Yami     | 3000    | 3     |
+| 14  | Suman    | 2500    | 4     |
+| 8   | Suhas    | 2020    | 5     |
+| 2   | Sumit    | 2009    | 6     |
+| 13  | Amulya   | 1400    | 7     |
+| 7   | Amrutha  | 1010    | 8     |
+| 1   | Amit     | 1000    | 9     |
+| 10  | Sunny    | 5050    | 1     |
+| 16  | Sachin   | 5000    | 2     |
+| 12  | Mehar    | 2900    | 3     |
+| 6   | Mahoor   | 2002    | 4     |
+| 11  | Kiran    | 1400    | 5     |
+| 5   | Kranti   | 1004    | 6     |
+| 4   | Sunil    | 1000    | 7     |
+| 17  | Kalyan   | 1000    | 7     |
+| 18  | Meghna   | 900     | 9     |
++-----+----------+---------+-------+
+
+SELECT id, name, salary, rank FROM
+(
+SELECT id, name, salary, rank() OVER (PARTITION BY unit ORDER BY salary DESC) AS rank
+FROM users
+) temp
+WHERE rank = 1;
+
++-----+---------+---------+-------+
+| id  |  name   | salary  | rank  |
++-----+---------+---------+-------+
+| 9   | Yamuna  | 3030    | 1     |
+| 10  | Sunny   | 5050    | 1     |
++-----+---------+---------+-------+
+
+SELECT rank() OVER (ORDER BY salary), id, name, salary, unit
+FROM users;
+
++----------------+-----+----------+---------+-------+
+| rank_window_0  | id  |   name   | salary  | unit  |
++----------------+-----+----------+---------+-------+
+| 1              | 18  | Meghna   | 900     | FCS   |
+| 2              | 1   | Amit     | 1000    | DNA   |
+| 2              | 4   | Sunil    | 1000    | FCS   |
+| 2              | 17  | Kalyan   | 1000    | FCS   |
+| 5              | 5   | Kranti   | 1004    | FCS   |
+| 6              | 7   | Amrutha  | 1010    | DNA   |
+| 7              | 13  | Amulya   | 1400    | DNA   |
+| 7              | 11  | Kiran    | 1400    | FCS   |
+| 9              | 6   | Mahoor   | 2002    | FCS   |
+| 10             | 2   | Sumit    | 2009    | DNA   |
+| 11             | 8   | Suhas    | 2020    | DNA   |
+| 12             | 14  | Suman    | 2500    | DNA   |
+| 13             | 12  | Mehar    | 2900    | FCS   |
+| 14             | 15  | Yami     | 3000    | DNA   |
+| 15             | 3   | Yadav    | 3007    | DNA   |
+| 16             | 9   | Yamuna   | 3030    | DNA   |
+| 17             | 16  | Sachin   | 5000    | FCS   |
+| 18             | 10  | Sunny    | 5050    | FCS   |
++----------------+-----+----------+---------+-------+
+
+SELECT dense_rank() OVER (ORDER BY salary), id, name, salary, unit
+FROM users;
+
++----------------------+-----+----------+---------+-------+
+| dense_rank_window_0  | id  |   name   | salary  | unit  |
++----------------------+-----+----------+---------+-------+
+| 1                    | 18  | Meghna   | 900     | FCS   |
+| 2                    | 1   | Amit     | 1000    | DNA   |
+| 2                    | 4   | Sunil    | 1000    | FCS   |
+| 2                    | 17  | Kalyan   | 1000    | FCS   |
+| 3                    | 5   | Kranti   | 1004    | FCS   |
+| 4                    | 7   | Amrutha  | 1010    | DNA   |
+| 5                    | 13  | Amulya   | 1400    | DNA   |
+| 5                    | 11  | Kiran    | 1400    | FCS   |
+| 6                    | 6   | Mahoor   | 2002    | FCS   |
+| 7                    | 2   | Sumit    | 2009    | DNA   |
+| 8                    | 8   | Suhas    | 2020    | DNA   |
+| 9                    | 14  | Suman    | 2500    | DNA   |
+| 10                   | 12  | Mehar    | 2900    | FCS   |
+| 11                   | 15  | Yami     | 3000    | DNA   |
+| 12                   | 3   | Yadav    | 3007    | DNA   |
+| 13                   | 9   | Yamuna   | 3030    | DNA   |
+| 14                   | 16  | Sachin   | 5000    | FCS   |
+| 15                   | 10  | Sunny    | 5050    | FCS   |
++----------------------+-----+----------+---------+-------+
+
+SELECT dense_rank() OVER (PARTITION BY unit ORDER BY salary DESC) AS rank, id, name, salary, unit
+FROM users;
+
++-------+-----+----------+---------+-------+
+| rank  | id  |   name   | salary  | unit  |
++-------+-----+----------+---------+-------+
+| 1     | 9   | Yamuna   | 3030    | DNA   |
+| 2     | 3   | Yadav    | 3007    | DNA   |
+| 3     | 15  | Yami     | 3000    | DNA   |
+| 4     | 14  | Suman    | 2500    | DNA   |
+| 5     | 8   | Suhas    | 2020    | DNA   |
+| 6     | 2   | Sumit    | 2009    | DNA   |
+| 7     | 13  | Amulya   | 1400    | DNA   |
+| 8     | 7   | Amrutha  | 1010    | DNA   |
+| 9     | 1   | Amit     | 1000    | DNA   |
+| 1     | 10  | Sunny    | 5050    | FCS   |
+| 2     | 16  | Sachin   | 5000    | FCS   |
+| 3     | 12  | Mehar    | 2900    | FCS   |
+| 4     | 6   | Mahoor   | 2002    | FCS   |
+| 5     | 11  | Kiran    | 1400    | FCS   |
+| 6     | 5   | Kranti   | 1004    | FCS   |
+| 7     | 4   | Sunil    | 1000    | FCS   |
+| 7     | 17  | Kalyan   | 1000    | FCS   |
+| 8     | 18  | Meghna   | 900     | FCS   |
++-------+-----+----------+---------+-------+
+
+SELECT name, salary, unit, rank 
+FROM
+(
+SELECT dense_rank() OVER (PARTITION BY unit ORDER BY salary DESC) AS rank, id, name, salary, unit
+FROM users
+) temp
+WHERE rank <= 2;
+
++---------+---------+-------+-------+
+|  name   | salary  | unit  | rank  |
++---------+---------+-------+-------+
+| Sunny   | 5050    | FCS   | 1     |
+| Sachin  | 5000    | FCS   | 2     |
+| Yamuna  | 3030    | DNA   | 1     |
+| Yadav   | 3007    | DNA   | 2     |
++---------+---------+-------+-------+
+
+SELECT name, salary, LEAD(salary) OVER (PARTITION BY unit ORDER BY salary)
+FROM users;
+
++----------+---------+----------------+
+|   name   | salary  | LEAD_window_0  |
++----------+---------+----------------+
+| Amit     | 1000    | 1010           |
+| Amrutha  | 1010    | 1400           |
+| Amulya   | 1400    | 2009           |
+| Sumit    | 2009    | 2020           |
+| Suhas    | 2020    | 2500           |
+| Suman    | 2500    | 3000           |
+| Yami     | 3000    | 3007           |
+| Yadav    | 3007    | 3030           |
+| Yamuna   | 3030    | NULL           |
+| Meghna   | 900     | 1000           |
+| Sunil    | 1000    | 1000           |
+| Kalyan   | 1000    | 1004           |
+| Kranti   | 1004    | 1400           |
+| Kiran    | 1400    | 2002           |
+| Mahoor   | 2002    | 2900           |
+| Mehar    | 2900    | 5000           |
+| Sachin   | 5000    | 5050           |
+| Sunny    | 5050    | NULL           |
++----------+---------+----------------+
+
+SELECT name, salary, LEAD(salary, 2) OVER (PARTITION BY unit ORDER BY salary)
+FROM users;
+
++----------+---------+----------------+
+|   name   | salary  | LEAD_window_0  |
++----------+---------+----------------+
+| Amit     | 1000    | 1400           |
+| Amrutha  | 1010    | 2009           |
+| Amulya   | 1400    | 2020           |
+| Sumit    | 2009    | 2500           |
+| Suhas    | 2020    | 3000           |
+| Suman    | 2500    | 3007           |
+| Yami     | 3000    | 3030           |
+| Yadav    | 3007    | NULL           |
+| Yamuna   | 3030    | NULL           |
+| Meghna   | 900     | 1000           |
+| Sunil    | 1000    | 1004           |
+| Kalyan   | 1000    | 1400           |
+| Kranti   | 1004    | 2002           |
+| Kiran    | 1400    | 2900           |
+| Mahoor   | 2002    | 5000           |
+| Mehar    | 2900    | 5050           |
+| Sachin   | 5000    | NULL           |
+| Sunny    | 5050    | NULL           |
++----------+---------+----------------+
+
+
+SELECT name, salary, LEAD(salary, 2, -1) OVER (PARTITION BY unit ORDER BY salary)
+FROM users;
+
++----------+---------+----------------+
+|   name   | salary  | LEAD_window_0  |
++----------+---------+----------------+
+| Amit     | 1000    | 1400           |
+| Amrutha  | 1010    | 2009           |
+| Amulya   | 1400    | 2020           |
+| Sumit    | 2009    | 2500           |
+| Suhas    | 2020    | 3000           |
+| Suman    | 2500    | 3007           |
+| Yami     | 3000    | 3030           |
+| Yadav    | 3007    | -1             |
+| Yamuna   | 3030    | -1             |
+| Meghna   | 900     | 1000           |
+| Sunil    | 1000    | 1004           |
+| Kalyan   | 1000    | 1400           |
+| Kranti   | 1004    | 2002           |
+| Kiran    | 1400    | 2900           |
+| Mahoor   | 2002    | 5000           |
+| Mehar    | 2900    | 5050           |
+| Sachin   | 5000    | -1             |
+| Sunny    | 5050    | -1             |
++----------+---------+----------------+
+
+
+SELECT name, salary, LEAD(salary, 2, -1) OVER (PARTITION BY unit ORDER BY salary)
+FROM users;
+
++---------+---------------+
+| salary  | LAG_window_0  |
++---------+---------------+
+| 1000    | NULL          |
+| 1010    | 1000          |
+| 1400    | 1010          |
+| 2009    | 1400          |
+| 2020    | 2009          |
+| 2500    | 2020          |
+| 3000    | 2500          |
+| 3007    | 3000          |
+| 3030    | 3007          |
+| 900     | NULL          |
+| 1000    | 900           |
+| 1000    | 1000          |
+| 1004    | 1000          |
+| 1400    | 1004          |
+| 2002    | 1400          |
+| 2900    | 2002          |
+| 5000    | 2900          |
+| 5050    | 5000          |
++---------+---------------+

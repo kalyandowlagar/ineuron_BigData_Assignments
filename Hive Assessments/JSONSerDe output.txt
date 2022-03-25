@@ -1,0 +1,54 @@
+==================================================================================================================================================
+Sample JSON File
+----------------
+vi json_file.json
+{"name":"Amulya", "id":1, "skills":["Hadoop", "Python","c#"]}
+{"name":"Sushanth", "id":2, "skills":["Hadoop", "Hive","Tosca"]}
+{"name":"Rocky", "id":3, "skills":["Oozie", "Python",".Net"]}
+
+--------------------------------------------------------------------------------
+ADDING JAR FOR JsonSerDe
+--------------------------------------------------------------------------------
+
+ADD JAR /usr/local/hive/hcatalog/share/hcatalog/hive-hcatalog-core-0.14.0.jar;
+
+file not found in any path jar is missing on hdp however the below query were executed
+--------------------------------------------------------------------------------
+CREATING TABLE USING JsonSerDe
+--------------------------------------------------------------------------------
+
+CREATE TABLE json_table(name string, id bigint, skills array<string>)
+ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
+STORED AS TEXTFILE;
+
+--------------------------------------------------------------------------------
+Loading DATA in table
+--------------------------------------------------------------------------------
+
+LOAD DATA LOCAL INPATH '/root/json_file.json'
+OVERWRITE INTO TABLE json_table;
+
+--------------------------------------------------------------------------------
+Querying the table
+--------------------------------------------------------------------------------
+
+select * from json_table;
+
++------------------+----------------+----------------------------+
+| json_table.name  | json_table.id  |     json_table.skills      |
++------------------+----------------+----------------------------+
+| Amulya           | 1              | ["Hadoop","Python","c#"]   |
+| Sushanth         | 2              | ["Hadoop","Hive","Tosca"]  |
+| Rocky            | 3              | ["Oozie","Python",".Net"]  |
++------------------+----------------+----------------------------+
+
+select skills[0] from json_table;
++---------+
+|   _c0   |
++---------+
+| Hadoop  |
+| Hadoop  |
+| Oozie   |
++---------+
+===================================================================================================================================================
+--------------------------------------------------------------end-of-file---------------------------------------------------------------------------
