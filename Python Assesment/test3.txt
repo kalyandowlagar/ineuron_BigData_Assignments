@@ -1,0 +1,3 @@
+test3 file
+Hey People! are you ready for party!
+This is a write operation to test1 file

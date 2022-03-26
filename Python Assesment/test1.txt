@@ -1,0 +1,4 @@
+
+This is a write operation to test1 file
+
+Hello!! Thanks for joining the program
